@@ -2,7 +2,7 @@ from typing import List
 import requests
 from bs4 import BeautifulSoup
 
-class BibleVerse:
+class BibleSearch:
 	""" Connects to bibleserver and returns the verse and location """
 	version: str #Bibleversion
 	chapter: str #Book and Chapter
@@ -10,10 +10,17 @@ class BibleVerse:
 	verse: str #Value of vers(es)
 	location: str #Location in bible
 
-	def Set_Verse(self, version: str = "LUT") -> None:
+	def __init__(self, verse:str="NO", version:str="LUT") -> None:
+		self.verse = verse
 		self.version = version
+		if self.verse != "NO":
+			self.Set_Verse()
+
+	def Set_Verse(self) -> None:
 		while True:
-			verse = input("Bitte Bibelstelle eingeben [Format: 1. Johannes 3, 2-4]: ")
+			############ HIER ABFAGE WEITER MACHEN!
+			if self.verse == "NO":
+				verse = input("Bitte Bibelstelle eingeben [Format: 1. Johannes 3, 2-4]: ")
 			if verse == "":
 				self.chapter = ""
 				self.verse = "-- NOCH NICHT BEKANNT --"
@@ -23,6 +30,7 @@ class BibleVerse:
 			else:
 				if not "," in verse:
 					print("Falsches Format!")
+					self.verse = "NO"
 					continue
 				
 				self.chapter = verse.split(",")[0].strip()
@@ -30,15 +38,19 @@ class BibleVerse:
 
 				if not self.chapter or not self.versenumber:
 					print("Falsches Format!")
+					self.verse = "NO"
 					continue
 				
 				valid, self.verse = self.Get_Verse()
-				if valid: break
-				else: print(self.verse)
-
-		if len(self.versenumber) > 1:
-			self.location = f"{self.chapter}, {self.versenumber[0]}-{self.versenumber[1]}"
-		else: self.location = f"{self.chapter}, {self.versenumber[0]}"
+				if valid:
+					if len(self.versenumber) > 1:
+						self.location = f"{self.chapter}, {self.versenumber[0]}-{self.versenumber[1]}"
+					else: self.location = f"{self.chapter}, {self.versenumber[0]}"
+					break
+				else: 
+					print(self.verse)
+					self.verse = "NO"
+					continue
 
 	def Get_Versenumbers(self, numbers: str) -> List:
 		""" Find the Delimiter and return the Versenumbers as List"""
@@ -88,8 +100,8 @@ class BibleVerse:
 
 def main():
 	#Create Bibleverse Object
-	bibleverse = BibleVerse()
-	bibleverse.Set_Verse()
+	bibleverse = BibleSearch("Johannes 3, 14")
+	
 	print(bibleverse)
 
 if __name__ == "__main__":
