@@ -1,35 +1,47 @@
 from typing import List
 import requests
 from bs4 import BeautifulSoup
-from configparser import ConfigParser
 
-class BibleVerse():
+class BibleVerse:
+	""" Connects to bibleserver and returns the verse and location """
 	version: str #Bibleversion
 	chapter: str #Book and Chapter
-	versenumber: List #List of Versenumbers
+	versenumber: List[int] #List of versenumbers
 	verse: str #Value of vers(es)
 	location: str #Location in bible
 
-	def Set_Verse(self, version: str = "LUT"):
+	def Set_Verse(self, version: str = "LUT") -> None:
 		self.version = version
-		
-		if verse == "":
-			self.versenumber = []
-			self.verse = "-- NOCH NICHT BEKANNT --"
-			self.location = "OFFEN"
+		while True:
+			verse = input("Bitte Bibelstelle eingeben [Format: 1. Johannes 3, 2-4]: ")
+			if verse == "":
+				self.chapter = ""
+				self.verse = "-- NOCH NICHT BEKANNT --"
+				self.location = "OFFEN"
+				break
 
-		else:
-			self.versenumber =[v.strip() for v in verse.split(",")]
-			self.versenumber[1] = self.Get_Versenumbers(self.versenumber[1])
-			self.verse = self.Get_Verse()
-			self.location = self.Get_Location()
+			else:
+				if not "," in verse:
+					print("Falsches Format!")
+					continue
+				
+				self.chapter = verse.split(",")[0].strip()
+				self.versenumber = self.Get_Versenumbers(verse.split(",")[1].strip())
 
-	def Get_Location(self) -> str:
-		if len(self.versenumber[1]) > 1:
-			return f"{self.versenumber[0]}, {self.versenumber[1][0]}-{self.versenumber[1][-1]}"
-		return f"{self.versenumber[0]}, {self.versenumber[1][0]}"
+				if not self.chapter or not self.versenumber:
+					print("Falsches Format!")
+					continue
+				
+				valid, self.verse = self.Get_Verse()
+				if valid: break
+				else: print(self.verse)
+
+		if len(self.versenumber) > 1:
+			self.location = f"{self.chapter}, {self.versenumber[0]}-{self.versenumber[1]}"
+		else: self.location = f"{self.chapter}, {self.versenumber[0]}"
 
 	def Get_Versenumbers(self, numbers: str) -> List:
+		""" Find the Delimiter and return the Versenumbers as List"""
 		def Find_Delimiter(text):
 			for t in text:
 				try: int(t)
@@ -37,47 +49,48 @@ class BibleVerse():
 		return numbers.split(Find_Delimiter(numbers))
 
 	def Get_Verse(self) -> str:
-		r = requests.get("https://www.bibleserver.com/"+self.version+"/"+self.versenumber[0])
-		#print(r.status_code)
+		""" 
+		Request to bibleserver with the choosen Bibleversion.
+		Returns the verse and improves self.chapter.
+		"""
+		r = requests.get("https://www.bibleserver.com/"+self.version+"/"+self.chapter)
 		if r.status_code != 200:
-			return "Vers existiert nicht, Kapitel existiert nicht..."
+			return False, "Fehler... Buch / Kapitel existiert nicht!"
+		
+		#Parse the html and find all spans
 		soup = BeautifulSoup(r.text, 'html.parser')
-
 		spans = soup.find_all("span", class_="verse-content--hover")
+		
+		#Build Verse
 		verse = ""
-
-		if len(self.versenumber[1]) == 1:
+		if len(self.versenumber) == 1:
 			try:
-				verse = spans[int(self.versenumber[1][0])-1].text
-			except: verse = "Vers existiert nicht!"
+				verse = spans[int(self.versenumber[0])-1].text
+			except IndexError: return False, "Versnummer zu hoch"
+			except: return False, "Fehler... Versnummer ist keine Zahl"
 		else:
 			try:
-				for n in range(int(self.versenumber[1][0]), int(self.versenumber[1][1])+1):
+				for n in range(int(self.versenumber[0]), int(self.versenumber[1])+1):
 					verse = verse + " " + spans[int(n)-1].text
-			except: verse = "Verse existieren nicht!"
-
+			except IndexError: return False, "Versnummer zu hoch"
+			except: return False, "Fehler... Versnummer ist keine Zahl"
+		
+		#Improve chapter
 		h1 = soup.find_all("h1")
 		if len(h1) == 1:
-			self.versenumber[0] = h1[0].text.strip()
-			if "." in self.versenumber[0]: self.versenumber[0] = self.versenumber[0].replace(".", ". ")
+			self.chapter = h1[0].text.strip()
+			if "." in self.chapter: self.chapter = self.chapter.replace(".", ". ")
 
-		return verse
+		return True, verse
 
 	def __repr__(self) -> str:
 		return f"{self.location}: {self.verse}"
 
 def main():
-	#Load Config.ini
-	config = ConfigParser()
-	config.read("config.ini")
-	#print(config['BibleSearch']['bibleVersion'])
-
-	#Ask for verse
-	verse = input("Bitte Vers eingeben [Format: 1. Johannes 3, 2-4]: ")
-	
 	#Create Bibleverse Object
-	bibleverse = BibleVerse(verse, config['BibleSearch']['bibleVersion'])
-	print(bibleverse.location)
+	bibleverse = BibleVerse()
+	bibleverse.Set_Verse()
+	print(bibleverse)
 
 if __name__ == "__main__":
 	main()
