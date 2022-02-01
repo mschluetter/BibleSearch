@@ -10,7 +10,7 @@ class BibleVerse():
 	verse: str #Value of vers(es)
 	location: str #Location in bible
 
-	def __init__(self, verse: str, version: str = "LUT"):
+	def Set_Verse(self, version: str = "LUT"):
 		self.version = version
 		
 		if verse == "":
