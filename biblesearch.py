@@ -9,18 +9,22 @@ class BibleSearch:
 	versenumber: List[int] #List of versenumbers
 	verse: str #Value of vers(es)
 	location: str #Location in bible
+	initsetter: bool #Checks if there is a Set of verse at creation
 
 	def __init__(self, verse:str="NO", version:str="LUT") -> None:
-		self.verse = verse
 		self.version = version
-		if self.verse != "NO":
-			self.Set_Verse()
+		if verse != "NO":
+			self.initsetter = True
+			self.Set_Verse(verse)
+		else: self.initsetter = False
 
-	def Set_Verse(self) -> None:
+	def Set_Verse(self, verse:str="") -> None:
 		while True:
-			############ HIER ABFAGE WEITER MACHEN!
-			if self.verse == "NO":
+			if not self.initsetter:
 				verse = input("Bitte Bibelstelle eingeben [Format: 1. Johannes 3, 2-4]: ")
+			else:
+				self.initsetter = False
+
 			if verse == "":
 				self.chapter = ""
 				self.verse = "-- NOCH NICHT BEKANNT --"
@@ -100,8 +104,8 @@ class BibleSearch:
 
 def main():
 	#Create Bibleverse Object
-	bibleverse = BibleSearch("Johannes 3, 14")
-	
+	bibleverse = BibleSearch()
+	bibleverse.Set_Verse()
 	print(bibleverse)
 
 if __name__ == "__main__":
