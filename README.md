@@ -13,7 +13,7 @@ Die Eingabe kann im Format BUCH KAPITEL, VERS-VERS erfolgen. Das Buch kann auch 
 #Beispiele
 vers = "Johannes 3, 16"
 vers = "1. Mose 5, 6-8"
-vers = DEUT4, 9
+vers = "DEUT4, 9"
 ```
 
 ## Direkter Request bei der Erstellung
