@@ -1,6 +1,9 @@
 # Biblesearch
 Biblesearch ist eine Klasse mit der man Bibelverse von der Seite bibleserver.com nachschlagen kann.
 
+# Installation
+Für die Installation reichen die Dokumente aus der requirements.txt 
+
 # Benutzung
 Die Klasse kann auf 2 Wege genutzt werden: Bei der Erstellung und im nachhinein. In beiden Fällen greifen Kontrollmechanismen, die bei Falscheingabe eine weitere Nutzereingabe erfordern.
 
